@@ -13,14 +13,22 @@ export default function App() {
     }])
   }
 
+  const removeTodo = id => {
+    setTodos(prev => prev.filter(todo => todo.id !== id))
+  }
+
   return (
     <View>
       <Navbar title='Todo App'/>
       <View style={styles.container}>
         <AddTodo onSubmit={addTodo} />
-        <ScrollView>
-          {todos.map(todo => <Todo key={todo.id} todo={todo} />)}
-        </ScrollView>
+        <FlatList
+          keyExtractor={item => item.id.toString()}
+          data={todos}
+          renderItem={({item}) => (
+            <Todo todo={item} onRemove={removeTodo}/>
+            )}
+        />
       </View>
     </View>
   );
