@@ -22,10 +22,12 @@ export default function App() {
     todos={todos}
     addTodo={addTodo}
     removeTodo={removeTodo}
+    openTodo={id => {setTodoId(id)}}
   />
 
   if (todoId) {
-    content = <TodoScreen />
+    const selectedTodo = todos.find(todo => todo.id === todoId)
+    content = <TodoScreen goBack={() => {setTodoId(null)}} todo={selectedTodo}/>
   }
 
   return (
