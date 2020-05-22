@@ -42,9 +42,17 @@ export const TodoState = ({children}) => {
         {
           text: 'Remove',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
             changeScreen(null)
-            dispatch({type: REMOVE_TODO, id})
+            try {
+              await fetch(`https://rn-todo-app-b4b5a.firebaseio.com/todos/${id}.json`,{
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'}
+              })
+              dispatch({type: REMOVE_TODO, id})
+            } catch (e) {
+              showError('Something went wrong...')
+            }
           }
         }
       ],
