@@ -1,4 +1,5 @@
 import React, {useReducer, useContext} from 'react'
+import {Alert} from 'react-native';
 import {TodoContext} from './todoContext'
 import {todoReducer} from './todoReducer'
 import {
@@ -6,7 +7,7 @@ import {
   HIDE_LOADER, SHOW_ERROR, CLEAR_ERROR, FETCH_TODOS
 } from '../types';
 import {ScreenContext} from "../screen/screenContext";
-import {Alert} from 'react-native';
+import {Http} from '../../http'
 
 export const TodoState = ({children}) => {
   const initialState = {
@@ -20,13 +21,17 @@ export const TodoState = ({children}) => {
   const [state, dispatch] = useReducer(todoReducer, initialState)
 
   const addTodo = async title => {
-    const response = await fetch('https://rn-todo-app-b4b5a.firebaseio.com/todos.json', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({title})
-    })
-    const data = await response.json();
-    dispatch({type: ADD_TODO, title, id: data.name.toString()})
+    clearError()
+    try {
+      const data = await Http.post(
+        'https://rn-todo-app-b4b5a.firebaseio.com/todos.json',
+        {title}
+      )
+      dispatch({type: ADD_TODO, title, id: data.name.toString()})
+    } catch (e) {
+      showError('Something went wrong')
+    }
+
   }
 
   const removeTodo = id => {
@@ -45,10 +50,7 @@ export const TodoState = ({children}) => {
           onPress: async () => {
             changeScreen(null)
             try {
-              await fetch(`https://rn-todo-app-b4b5a.firebaseio.com/todos/${id}.json`,{
-                method: 'DELETE',
-                headers: {'Content-Type': 'application/json'}
-              })
+              await Http.delete(`https://rn-todo-app-b4b5a.firebaseio.com/todos/${id}.json`)
               dispatch({type: REMOVE_TODO, id})
             } catch (e) {
               showError('Something went wrong...')
@@ -65,11 +67,7 @@ export const TodoState = ({children}) => {
     showLoader()
     clearError()
     try {
-      const response = await fetch('https://rn-todo-app-b4b5a.firebaseio.com/todos.json', {
-        method: 'GET',
-        headers: {'Content-Type': 'application/json'},
-      })
-      const data = await response.json()
+      const data = await Http.get('https://rn-todo-app-b4b5a.firebaseio.com/todos.json')
       const todos = Object.keys(data).map(key => ({...data[key], id: key}))
       dispatch({type: FETCH_TODOS, todos})
     } catch (e) {
@@ -83,11 +81,7 @@ export const TodoState = ({children}) => {
     showLoader()
     clearError()
     try {
-      await fetch(`https://rn-todo-app-b4b5a.firebaseio.com/todos/${id}.json`, {
-        method: 'PATCH',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({title})
-      })
+      await Http.patch(`https://rn-todo-app-b4b5a.firebaseio.com/todos/${id}.json`, {title})
       dispatch({type: UPDATE_TODO, id, title})
     } catch (e) {
       showError('Something went wrong...')
